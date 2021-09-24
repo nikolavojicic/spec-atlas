@@ -1,0 +1,237 @@
+::selection {
+  background: #fbe677;
+}
+
+body {
+    font-family: Monaco;
+    font-size: 13px;
+    background-color: #f5f5f5;
+}
+
+h3 {
+    margin: 0px;
+}
+
+pre {
+    font-family: Monaco;
+    margin     : 0px;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 15px;
+}
+
+input {
+    color: blue;
+    font-family: Monaco;
+    background-color: transparent;
+    border: 1px solid darkgray;
+}
+
+option {
+    font-family: Monaco;
+}
+
+select {
+    color: blue;
+    font-family: Monaco;
+    background-color: transparent;
+    border: 1px solid darkgray;
+    max-width: 135px;
+    min-width: 135px;
+}
+
+button {
+    font-family: Monaco;
+    margin: 1px;
+    cursor: pointer;
+    border: 1px solid darkgray;
+    background-color: transparent;
+}
+
+button:disabled {
+    color: blue;
+}
+
+button.action {
+    margin-left: 2px;
+}
+
+button.action:active {
+    background-color: blue;
+    color: #f5f5f5;
+}
+
+div.sticky {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
+  background-color: #f5f5f5;
+  padding-bottom:10px;
+}
+
+.wrapper {
+    display: flex;
+    width: 100%;
+    height: 98vh;
+}
+
+.col-left {
+    width: 400px;
+    margin: 5px;
+    overflow-y:scroll;
+}
+
+.col-right {
+    flex: 1;
+    margin: 5px;
+    overflow-y:scroll;
+}
+
+.red {
+    color: red;
+}
+
+.green {
+    color: green;
+}
+
+.blue {
+    color: blue;
+}
+
+.menuitem {
+    text-decoration : none;
+    color : black;
+}
+
+.menuitem:active {
+    color : none;
+}
+
+.menuitem.selected {
+    color : blue;
+}
+
+.menuitem:hover {
+    color : blue;
+}
+
+.spacer {
+    margin : 5px;
+}
+
+.spaced {
+    margin : 15px 0px;
+}
+
+.selected {
+    color: blue;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.jh-root, .jh-type-object, .jh-type-array, .jh-key, .jh-value, .jh-root tr{
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;         /* Opera/IE 8+ */
+}
+
+.jh-key, .jh-value{
+    margin: 0;
+    padding: 0.2em;
+}
+
+.jh-empty-collection:before {
+    content: '[]';
+}
+
+.jh-empty-map:before {
+    content: '{}';
+}
+
+.jh-empty-set:before {
+    content: '#{}';
+}
+
+.jh-empty-string:before {
+    content: '""';
+}
+
+.jh-value{
+    border-left: 1px solid darkgray;
+}
+
+.jh-type-bool, .jh-type-number{
+    text-align: center;
+    color: black;
+}
+
+.jh-type-string{
+    color: black;
+}
+
+.jh-type-date{
+    color: black;
+}
+
+.jh-array-key{
+    font-size: small;
+    font-weight:normal;
+    text-align: center;
+}
+
+.jh-object-key, .jh-array-key{
+    color: green;
+    vertical-align: top;
+}
+
+/* .jh-type-object > tbody > tr:nth-child(odd), .jh-type-array > tbody > tr:nth-child(odd){ */
+/*     background-color: #f5f5f5; */
+/* } */
+
+/* .jh-type-object > tbody > tr:nth-child(even), .jh-type-array > tbody > tr:nth-child(even){ */
+/*     background-color: white; */
+/* } */
+
+.jh-type-object, .jh-type-array{
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.jh-root{
+}
+
+th.jh-key{
+    text-align: left;
+    font-weight: normal;
+}
+
+.jh-type-object > tbody > tr, .jh-type-array > tr{
+    border: 1px solid darkgray;
+    border-bottom: none;
+}
+
+.jh-type-object > tbody > tr:last-child, .jh-type-array > tbody > tr:last-child{
+    border-bottom: 1px solid darkgray;
+}
+
+.jh-type-object > tbody > tr:hover, .jh-type-array > tbody > tr:hover{
+    border: 1px solid blue;
+}
+
+.jh-empty{
+    color: darkgray;
+    font-size: small;
+}
