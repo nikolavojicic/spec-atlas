@@ -73,7 +73,7 @@
 (defmethod exec! :generate
   [_ spec]
   (http :get "/spec/generate"
-        {:kw spec}
+        {:spec spec}
         #(swap! -state* util/generate (:body %))))
 
 
