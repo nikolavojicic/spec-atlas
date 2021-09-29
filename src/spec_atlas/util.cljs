@@ -87,20 +87,26 @@
           (assoc :spec-format format)))))
 
 
-(defn set-spec-usage
-  [state usage]
-  (let [old-usage (:spec-usage state)]
-    (if (= usage old-usage)
+(defn set-spec-action
+  [state action]
+  (let [old-action (:spec-action state)]
+    (if (= action old-action)
       (-> state
-          (dissoc :spec-usage))
+          (dissoc :spec-action))
       (-> state
-          (assoc :spec-usage usage)))))
+          (assoc :spec-action action)))))
 
 
 (defn set-generator
   [state gener]
   (-> state
       (assoc :selected-generator gener)))
+
+
+(defn toggle-hide-left
+  [state]
+  (-> state
+      (update :hide-left? not)))
 
 
 (defn refresh-specs
@@ -139,10 +145,16 @@
 ;; ========== STATE DATA -> UI DATA
 
 
+(defn component-usages
+  [state]
+  (let [usages (-> state :selected-spec :usages sort)]
+    (hierarchy usages)))
+
+
 (defn component-generate-data
   [state]
   (let [spec                 (-> state :selected-spec :spath last)
-        generators           [:default :navigation] ;; TODO
+        generators           [:default]
         generator            (-> state :selected-spec :sgen)
         generated-value      (-> generator :value)
         selected-data-format (-> state :data-format)
@@ -162,16 +174,19 @@
 
 (defn left-panel-data
   [state]
-  (let [selected-view (-> state :selected-view)
-        selected-spec (-> state :selected-spec :spath last)]
-    (cond-> {:views [:data :fspec]}
-      selected-view (-> (assoc :selected-view selected-view)
-                        (assoc :specs
-                               (hierarchy
-                                (case selected-view
-                                  :data  (-> state :specs-data)
-                                  :fspec (-> state :specs-fspec)))))
-      selected-spec (assoc :selected-spec selected-spec))))
+  (if (:hide-left? state)
+    {:hide-left? true}
+    (let [selected-view (-> state :selected-view)
+          selected-spec (-> state :selected-spec :spath last)]
+      (cond-> {:hide-left? false
+               :views      [:data :fspec]}
+        selected-view (-> (assoc :selected-view selected-view)
+                          (assoc :specs
+                                 (hierarchy
+                                  (case selected-view
+                                    :data  (-> state :specs-data)
+                                    :fspec (-> state :specs-fspec)))))
+        selected-spec (assoc :selected-spec selected-spec)))))
 
 
 (defn right-panel-data
@@ -181,13 +196,13 @@
           selected-spec        (-> path last)
           path                 (-> path butlast)
           selected-spec-format (-> state :spec-format)
-          selected-spec-usage  (-> state :spec-usage)]
+          selected-spec-action (-> state :spec-action)]
       (merge
        (cond-> {:spec-format  {:formats [:abbr :desc :form]}
-                :spec-usage   {:usages  [:usages :generate :explain]}}
+                :spec-action  {:actions [:usages :generate :explain]}}
          path                 (assoc :path path)
          selected-spec        (assoc :selected-spec selected-spec)
-         selected-spec-usage  (assoc-in [:spec-usage :selected] selected-spec-usage)
+         selected-spec-action (assoc-in [:spec-action :selected] selected-spec-action)
          selected-spec-format (-> (assoc-in [:spec-format :selected] selected-spec-format)
                                   (assoc :spec-definition
                                          (case selected-spec-format
@@ -197,8 +212,8 @@
                                                      with-out-str linkify)
                                            :form (-> sdef :sform fix-or-ns ppspec/pprint
                                                      with-out-str linkify)))))
-       (case selected-spec-usage
+       (case selected-spec-action
          nil       nil
-         :usages   nil
+         :usages   {:usages   (component-usages state)}
          :generate {:generate (component-generate-data state)}
          :explain  nil)))))

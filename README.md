@@ -16,11 +16,11 @@ npx shadow-cljs release app
 ### TODO
 
 - better hierarchy
-- slide side menu (+ default on zoom)
 - foldable hierarchy and navigation
+- two windows on the right with L-R / U-D position
+- global undo-redo
 
 - documentation
-   - usages
    - better fspec -> URI
    - drill into predicate
    - browsing -> gen
@@ -28,11 +28,12 @@ npx shadow-cljs release app
 
 - validation & explaination
   - expound & explain-data
-  - confirmation
+  - conformation
 
 - search
   - apropos
   - inference
   - next step
 
+- exercise
 - generative testing

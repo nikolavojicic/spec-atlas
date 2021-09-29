@@ -9,7 +9,8 @@
 (defonce ^:private -state*
   (r/atom {:selected-view :data
            :spec-format   :abbr
-           :data-format   :edn}))
+           :data-format   :edn
+           :hide-left?    false}))
 
 
 (defn snapshot
@@ -49,12 +50,13 @@
      (async/take! (http/request req) callback))))
 
 
-(defmethod exec! :set-context-path [_ cpath] (swap! -state* util/set-context-path cpath))
-(defmethod exec! :set-view         [_ view ] (swap! -state* util/set-view view))
-(defmethod exec! :set-data-format  [_ fmt  ] (swap! -state* util/set-data-format fmt))
-(defmethod exec! :set-spec-format  [_ fmt  ] (swap! -state* util/set-spec-format fmt))
-(defmethod exec! :set-spec-usage   [_ usage] (swap! -state* util/set-spec-usage usage))
-(defmethod exec! :set-generator    [_ gener] (swap! -state* util/set-generator gener))
+(defmethod exec! :set-context-path [_ cpath ] (swap! -state* util/set-context-path cpath))
+(defmethod exec! :set-view         [_ view  ] (swap! -state* util/set-view view))
+(defmethod exec! :set-data-format  [_ fmt   ] (swap! -state* util/set-data-format fmt))
+(defmethod exec! :set-spec-format  [_ fmt   ] (swap! -state* util/set-spec-format fmt))
+(defmethod exec! :set-spec-action  [_ action] (swap! -state* util/set-spec-action action))
+(defmethod exec! :set-generator    [_ gener ] (swap! -state* util/set-generator gener))
+(defmethod exec! :toggle-hide-left [_ _     ] (swap! -state* util/toggle-hide-left))
 
 
 (defmethod exec! :refresh-specs

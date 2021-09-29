@@ -8,18 +8,30 @@
 ;; ====================
 
 
-(defn component-spec-list-category
+(defn component-views-opener
+  []
+  [:button.action
+   {:style    {:float "right" :margin-right 10}
+    :on-click #(enqueue! :toggle-hide-left)}
+   ">>"])
+
+
+(defn component-views
   [views selected-view]
   [:div.sticky
    (for [view views] ^{:key view}
      [:button {:disabled (= view selected-view)
                :on-click #(enqueue! :set-view view)}
-      (name view)])])
+      (name view)])
+   [:button.action
+    {:style    {:float "right" :margin-right 10}
+     :on-click #(enqueue! :toggle-hide-left)}
+    "<<"]])
 
 
 (defn component-spec-list
   [specs selected-spec]
-  [:ul {:style {:margin-top 0}} ;; TODO remove after sticky
+  [:ul {:style {:margin-top 0}}
    (for [[ns specs] specs] ^{:key ns}
      [:li
       [:span.green ns]
@@ -72,13 +84,29 @@
           {:__html spec-definition}}]])
 
 
-(defn component-spec-usage
-  [{:keys [usages selected]}]
+(defn component-spec-action
+  [{:keys [actions selected]}]
   [:div
-   (for [usage usages] ^{:key usage}
-     [:button {:class    (when (= usage selected) :selected)
-               :on-click #(enqueue! :set-spec-usage usage)}
-      usage])])
+   (for [action actions] ^{:key action}
+     [:button {:class    (when (= action selected) :selected)
+               :on-click #(enqueue! :set-spec-action action)}
+      action])])
+
+
+(defn component-usages
+  [usages]
+  (if (seq usages)
+    [:ul {:style {:margin 0 :padding 0}}
+     (for [[ns specs] usages] ^{:key ns}
+       [:li
+        [:span.green ns]
+        [:ul
+         (for [spec specs] ^{:key spec}
+           [:li
+            [:a.menuitem {:href     "#"
+                          :on-click #(enqueue! :select-spec spec)}
+             (keyword spec)]])]])]
+    [:label.red "There are no usages."]))
 
 
 (defn component-generate-menu
@@ -117,17 +145,20 @@
 
 
 (defn left-panel
-  [{:keys [views selected-view specs selected-spec]}]
-  [:div
-   (component-spec-list-category views selected-view)
-   (component-spec-list specs selected-spec)])
+  [{:keys [views selected-view specs selected-spec hide-left?]}]
+  (if hide-left?
+    [:div.col-left-small
+     (component-views-opener)]
+    [:div.col-left
+     (component-views views selected-view)
+     (component-spec-list specs selected-spec)]))
 
 
 (defn right-panel
-  [{:keys [path selected-spec spec-format spec-definition spec-usage]
+  [{:keys [path selected-spec spec-format spec-definition spec-action]
     :as   right-panel-data}]
   (when selected-spec
-    [:div
+    [:div.col-right
      (component-spec-path path)
      [:span.spacer]
      (component-spec-name selected-spec)
@@ -145,18 +176,21 @@
      [:span.spacer]
      (when (keyword? selected-spec) ;; TODO
        [:div
-        (component-spec-usage spec-usage)
+        (component-spec-action spec-action)
         [:span.spacer]
         (when-some [generate (:generate right-panel-data)]
           [:div
            (component-generate-menu generate)
            [:span.spacer]
-           (component-generate-value generate)])])]))
+           (component-generate-value generate)])
+        (when-some [usages (:usages right-panel-data)]
+          [:div
+           (component-usages usages)])])]))
 
 
 (defn home-page
   []
   (let [state (snapshot)]
     [:div.wrapper
-     [:div.col-left  (-> state util/left-panel-data  left-panel)]
-     [:div.col-right (-> state util/right-panel-data right-panel)]]))
+     (-> state util/left-panel-data  left-panel)
+     (-> state util/right-panel-data right-panel)]))
