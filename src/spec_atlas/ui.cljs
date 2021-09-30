@@ -145,12 +145,16 @@
        (for [data-format data-formats] ^{:key data-format}
          [:option (name data-format)])]]
      [:td
-      [:button.action "copy"]]]]])
+      [:button.action
+       {:on-click #(-> :generated-value
+                       util/get-element-by-id
+                       util/copy-to-clipboard)}
+       "copy"]]]]])
 
 
 (defn component-generate-value
   [{:keys [generated-value]}]
-  [:pre generated-value])
+  [:pre#generated-value generated-value])
 
 
 ;; ====================

@@ -7,6 +7,26 @@
    [json-html.core :refer [edn->hiccup]]))
 
 
+(defn get-element-by-id
+  [id]
+  (-> js/document
+      (.getElementById (name id))
+      (.-innerHTML)))
+
+
+(defn copy-to-clipboard
+  [s]
+  (let [el (.createElement js/document "textarea")]
+    (set! (.-value el) s)
+    (.setAttribute el "readonly" "")
+    (set! (-> el .-style .-position) "absolute")
+    (set! (-> el .-style .-left) "-9999px")
+    (-> js/document .-body (.appendChild el))
+    (.select el)
+    (.execCommand js/document "copy")
+    (-> js/document .-body (.removeChild el))))
+
+
 (defn tval->kw
   [x]
   (-> x .-target .-value keyword))
