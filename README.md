@@ -17,23 +17,21 @@ npx shadow-cljs release app
 
 - Alt+Click to (un)fold all
 - two windows on the right with L-R / U-D position
-- global undo-redo
+- back~forward
 - drill into predicate + support lambdas in s/def
 - rename brainteaser-assistant -> brainteaser.assistant
-
-- documentation
-   - better fspec -> URI
-   - navigation gen
-
-- exercise
-
-- validation & explaination
-  - expound & explain-data
-  - conformation
-
 - search
   - apropos
   - inference
   - next step
 
-- generative testing
+- navigation gen
+  -->
+
+- better fspec - URI
+  - exercise
+  - generative testing
+
+- validation & explaination
+- expound & explain-data
+- conformation

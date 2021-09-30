@@ -1,8 +1,16 @@
 (ns spec-atlas.ui
   (:require
    [clojure.string :as str]
+   [cljs.reader :as reader]
    [spec-atlas.util :as util]
    [spec-atlas.state :refer [enqueue! snapshot]]))
+
+
+;; ====================
+
+
+(defn _pre_navigate [x]
+  (enqueue! :navigate (reader/read-string x)))
 
 
 ;; ====================
@@ -60,8 +68,10 @@
     [:div 
      (for [[i spec] (map-indexed vector path)] ^{:key i}
        [:div
-        [:a.menuitem {:href     "#"
-                      :on-click #(enqueue! :navigate spec)}
+        [:a.menuitem
+         {:href     "#"
+          :title    (str spec)
+          :on-click #(enqueue! :navigate spec)}
          (str "> " (str/join (repeat i "...")) (name spec))]])]))
 
 
@@ -138,7 +148,7 @@
       [:button.action {:on-click #(enqueue! :generate [spec selected-generator])}
        "exec"]]]
     [:tr
-     [:td [:label "preview"]]
+     [:td [:label "previewer"]]
      [:td
       [:select {:on-change #(enqueue! :set-data-format (util/tval->kw %))
                 :value     selected-data-format}
@@ -212,3 +222,4 @@
     [:div.wrapper
      (-> state util/left-panel-data  left-panel)
      (-> state util/right-panel-data right-panel)]))
+(snapshot)
