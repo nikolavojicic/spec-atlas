@@ -17,7 +17,7 @@
   (state/enqueue! :navigate (reader/read-string x)))
 
 
-(state/enqueue! :set-context-path "http://localhost:3000")
+(state/enqueue! :set-context-path "http://172.28.43.179:3000")
 (state/enqueue! :refresh-specs)
 
 

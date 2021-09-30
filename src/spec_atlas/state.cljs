@@ -7,10 +7,12 @@
 
 
 (defonce ^:private -state*
-  (r/atom {:selected-view :data
-           :spec-format   :abbr
-           :data-format   :edn
-           :hide-left?    false}))
+  (r/atom {:selected-generator :default
+           :selected-view      :data
+           :spec-format        :abbr
+           :data-format        :edn
+           :hide-left?         false
+           :collapsed          #{}}))
 
 
 (defn snapshot
@@ -57,6 +59,7 @@
 (defmethod exec! :set-spec-action  [_ action] (swap! -state* util/set-spec-action action))
 (defmethod exec! :set-generator    [_ gener ] (swap! -state* util/set-generator gener))
 (defmethod exec! :toggle-hide-left [_ _     ] (swap! -state* util/toggle-hide-left))
+(defmethod exec! :toggle-collapse  [_ ns    ] (swap! -state* util/toggle-collapse ns))
 
 
 (defmethod exec! :refresh-specs
@@ -73,9 +76,9 @@
 
 
 (defmethod exec! :generate
-  [_ spec]
+  [_ [spec generator]]
   (http :get "/spec/generate"
-        {:spec spec}
+        {:spec spec :generator generator}
         #(swap! -state* util/generate (:body %))))
 
 

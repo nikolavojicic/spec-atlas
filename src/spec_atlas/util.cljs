@@ -109,6 +109,16 @@
       (update :hide-left? not)))
 
 
+(defn toggle-collapse
+  [state ns]
+  (-> state
+      (update :collapsed
+              (fn [collapsed]
+                (if (collapsed ns)
+                  (disj collapsed ns)
+                  (conj collapsed ns))))))
+
+
 (defn refresh-specs
   [state {:keys [data fspec]}]
   (-> state
@@ -154,7 +164,7 @@
 (defn component-generate-data
   [state]
   (let [spec                 (-> state :selected-spec :spath last)
-        generators           [:default]
+        generators           (-> state :selected-spec :generators sort (conj :default))
         generator            (-> state :selected-spec :sgen)
         generated-value      (-> generator :value)
         selected-data-format (-> state :data-format)
@@ -177,9 +187,11 @@
   (if (:hide-left? state)
     {:hide-left? true}
     (let [selected-view (-> state :selected-view)
-          selected-spec (-> state :selected-spec :spath last)]
+          selected-spec (-> state :selected-spec :spath last)
+          collapsed     (-> state :collapsed)]
       (cond-> {:hide-left? false
-               :views      [:data :fspec]}
+               :views      [:data :fspec]
+               :collapsed  collapsed}
         selected-view (-> (assoc :selected-view selected-view)
                           (assoc :specs
                                  (hierarchy

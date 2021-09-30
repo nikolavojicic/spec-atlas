@@ -15,16 +15,17 @@ npx shadow-cljs release app
 ```
 ### TODO
 
-- better hierarchy
-- foldable hierarchy and navigation
+- Alt+Click to (un)fold all
 - two windows on the right with L-R / U-D position
 - global undo-redo
+- drill into predicate + support lambdas in s/def
+- rename brainteaser-assistant -> brainteaser.assistant
 
 - documentation
    - better fspec -> URI
-   - drill into predicate
-   - browsing -> gen
-       - gen request should provide gen name
+   - navigation gen
+
+- exercise
 
 - validation & explaination
   - expound & explain-data
@@ -35,5 +36,4 @@ npx shadow-cljs release app
   - inference
   - next step
 
-- exercise
 - generative testing
