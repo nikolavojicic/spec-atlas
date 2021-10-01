@@ -27,6 +27,11 @@
     (-> js/document .-body (.removeChild el))))
 
 
+(defn tval->str
+  [x]
+  (-> x .-target .-value))
+
+
 (defn tval->kw
   [x]
   (-> x .-target .-value keyword))
@@ -172,10 +177,17 @@
         (assoc-in [:selected-spec :spath] npath))))
 
 
+(defn explain
+  [state input output]
+  (-> state
+      (assoc-in [:explain :input ] input)
+      (assoc-in [:explain :output] output)))
+
+
 ;; ========== STATE DATA -> UI DATA
 
 
-(defn component-usages
+(defn component-usages-data
   [state]
   (let [usages (-> state :selected-spec :usages sort)]
     (hierarchy usages)))
@@ -200,6 +212,13 @@
                                     :edn  (with-out-str (pprint/pprint generated-value))
                                     :json (edn->json generated-value)
                                     :html (edn->hiccup generated-value))))))
+
+
+(defn component-explain-data
+  [state]
+  {:spec   (-> state :selected-spec :spath last)
+   :input  (-> state :explain :input)
+   :output (-> state :explain :output)})
 
 
 (defn left-panel-data
@@ -246,6 +265,6 @@
                                                      with-out-str linkify)))))
        (case selected-spec-action
          nil       nil
-         :usages   {:usages   (component-usages state)}
+         :usages   {:usages   (component-usages-data   state)}
          :generate {:generate (component-generate-data state)}
-         :explain  nil)))))
+         :explain  {:explain  (component-explain-data  state)})))))

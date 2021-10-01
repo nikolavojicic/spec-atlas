@@ -26,12 +26,12 @@ npx shadow-cljs release app
   - next step
 
 - navigation gen
-  -->
+  :selected-spec -> sgen {spec {:name ... :value ...}}
+  apply dissoc tail
+  `navigation` generator
+  logic for nav on BE
 
 - better fspec - URI
   - exercise
   - generative testing
 
-- validation & explaination
-- expound & explain-data
-- conformation

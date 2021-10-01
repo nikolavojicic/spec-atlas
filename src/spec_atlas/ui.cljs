@@ -167,6 +167,28 @@
   [:pre#generated-value generated-value])
 
 
+(defn component-explain
+  [{:keys [spec input output]}]
+  [:table {:style {:width "100%" :table-layout "fixed"}}
+   [:tbody
+    [:tr
+     [:th {:style {:font-weight "normal"}} [:h3 "input data"]]
+     [:th {:style {:font-weight "normal"}} [:h3 "conformed data"]]]
+    [:tr] [:tr] [:tr] [:tr]
+    [:tr
+     [:td {:style {:vertical-align "top"}}
+      [:textarea
+       {:on-change  #(enqueue! :explain [spec (util/tval->str %)])
+        :value      input
+        :style      {:width "95%" :height 530 :padding 10}
+        :spellCheck "false"}]]
+     [:td {:style {:vertical-align "top"}}
+      [:pre
+       (if (or (string? output) (nil? (seq output)))
+         output
+         (with-out-str (cljs.pprint/pprint output)))]]]]])
+
+
 ;; ====================
 
 
@@ -203,17 +225,21 @@
        [:div.menu
         (component-spec-action spec-action)
         [:span.spacer]
+        (when-some [usages (:usages right-panel-data)]
+          [:div
+           (component-usages usages)])
         (when-some [generate (:generate right-panel-data)]
           [:div
            (component-generate-menu generate)
            [:span.spacer]
            (component-generate-value generate)])
-        (when-some [usages (:usages right-panel-data)]
+        (when-some [explain (:explain right-panel-data)]
           [:div
-           (component-usages usages)])]
+           (component-explain explain)])]
        [:div.menu
         [:button "exercise"]
-        [:button "test"]])]))
+        [:button "test"]
+        [:button "explain"]])]))
 
 
 (defn home-page
@@ -222,4 +248,12 @@
     [:div.wrapper
      (-> state util/left-panel-data  left-panel)
      (-> state util/right-panel-data right-panel)]))
-(snapshot)
+
+
+(comment
+  
+
+  (snapshot)
+
+
+  ,)

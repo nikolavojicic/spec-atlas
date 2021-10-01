@@ -87,3 +87,21 @@
   (http :get "/spec/definition"
         {:spec spec}
         #(swap! -state* util/navigate (:body %))))
+
+
+(defmethod exec! :explain
+  [_ [spec input]]
+  (if (seq input)
+    (let [input' (or (try (cljs.reader/read-string input)
+                          input
+                          (catch js/Error _))
+                     (try (pr-str
+                           (js->clj (.parse js/JSON input)
+                                    :keywordize-keys true))
+                          (catch js/Error _)))]
+      (if input'
+        (http :get "/spec/explain"
+              {:spec spec :input input'}
+              #(swap! -state* util/explain input (:body %)))
+        (swap! -state* util/explain input "Invalid JSON / EDN.")))
+    (swap! -state* util/explain input "")))
