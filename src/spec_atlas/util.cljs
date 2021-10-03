@@ -175,7 +175,8 @@
 (defn select-spec
   [state selected-spec]
   (-> state
-      (assoc :selected-spec selected-spec)))
+      (assoc :selected-spec selected-spec)
+      (dissoc :explain)))
 
 
 (defn generate
@@ -274,12 +275,18 @@
   (when-some [sdef (:selected-spec state)]
     (let [path                 (-> sdef :spath)
           selected-spec        (-> path last)
+          fspec?               (symbol? selected-spec)
           path                 (-> path butlast)
           selected-spec-format (-> state :spec-format)
-          selected-spec-action (-> state :spec-action)]
+          selected-spec-action (-> state :spec-action)
+          selected-spec-action (when (or (not fspec?)
+                                         (= :generate selected-spec-action))
+                                 selected-spec-action)]
       (merge
        (cond-> {:spec-format  {:formats [:abbr :desc :form]}
-                :spec-action  {:actions [:usages :generate :explain]}}
+                :spec-action  {:actions (if fspec?
+                                          [:generate]
+                                          [:usages :generate :explain])}}
          path                 (assoc :path path)
          selected-spec        (assoc :selected-spec selected-spec)
          selected-spec-action (assoc-in [:spec-action :selected] selected-spec-action)

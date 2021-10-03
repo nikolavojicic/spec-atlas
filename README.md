@@ -24,7 +24,7 @@ npx shadow-cljs release app
   - apropos
   - inference
   - next step
-- improve explain (bug with dates, style, undo)
+- improve explain (bug with dates + or, undo)
 - flash
 - generative testing
 
@@ -33,6 +33,7 @@ npx shadow-cljs release app
   apply dissoc tail
   `navigation` generator
   logic for nav on BE
+  navigation explain
 
 - better fspec - URI
 - exercise

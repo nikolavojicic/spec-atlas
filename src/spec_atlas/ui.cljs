@@ -167,25 +167,29 @@
   [:pre#generated-value generated-value])
 
 
-;; https://stackoverflow.com/a/48460773
 (defn component-explain
   [{:keys [spec input output error? format]}]
   [:table {:style {:width "100%" :table-layout "fixed"}}
    [:tbody
     [:tr
-     [:th {:style {:font-weight "normal"}} [:h3.green (str "input data"
-                                                           (if format
-                                                             (str " (" (name format) ")")
-                                                             ""))]]
-     [:th {:style {:font-weight "normal"}} (if error?
-                                             [:h3.red   "error"]
-                                             [:h3.green "conformed data (edn)"])]]
+     [:th {:style {:font-weight "normal"}}
+      [:h3.green (str "input data"
+                      (if format
+                        (str " (" (name format) ")")
+                        ""))]]
+     [:th {:style {:font-weight "normal"}}
+      (if error?
+        [:h3.red   "error"]
+        [:h3.green "conformed data (edn)"])]]
     [:tr
-     [:td {:style {:vertical-align "top"}}
+     [:td {:style {:vertical-align "top" :border "1px solid darkgray"}}
       [:textarea
        {:on-change  #(enqueue! :set-explain-input (util/tval->str %))
         :on-key-up  #(with-typing-timeout (fn [] (enqueue! :explain [spec input])))
-        :style      {:width "95%" :height "100%" :padding 10}
+        :rows       (max 20
+                         (count (str/split-lines input))
+                         (count (str/split-lines output)))
+        :style      {:padding 10}
         :spellCheck "false"
         :auto-focus true
         :value      input}]]
@@ -230,24 +234,20 @@
          (component-spec-definition spec-definition)])]
      [:span.spacer]
      [:span.spacer]
-     (if (keyword? selected-spec) ;; TODO
-       [:div.menu
-        (component-spec-action spec-action)
-        [:span.spacer]
-        (when-some [usages (:usages right-panel-data)]
-          [:div
-           (component-usages usages)])
-        (when-some [generate (:generate right-panel-data)]
-          [:div
-           (component-generate-menu generate)
-           [:span.spacer]
-           (component-generate-value generate)])
-        (when-some [explain (:explain right-panel-data)]
-          [:div
-           (component-explain explain)])]
-       [:div.menu
-        [:button "exercise"]
-        [:button "test"]])]))
+     [:div.menu
+      (component-spec-action spec-action)
+      [:span.spacer]
+      (when-some [usages (:usages right-panel-data)]
+        [:div
+         (component-usages usages)])
+      (when-some [generate (:generate right-panel-data)]
+        [:div
+         (component-generate-menu generate)
+         [:span.spacer]
+         (component-generate-value generate)])
+      (when-some [explain (:explain right-panel-data)]
+        [:div
+         (component-explain explain)])]]))
 
 
 (defn home-page
