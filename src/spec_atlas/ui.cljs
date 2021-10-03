@@ -3,7 +3,7 @@
    [clojure.string :as str]
    [cljs.reader :as reader]
    [spec-atlas.util :as util]
-   [spec-atlas.state :refer [enqueue! snapshot]]))
+   [spec-atlas.state :refer [enqueue! snapshot with-typing-timeout]]))
 
 
 ;; ====================
@@ -167,24 +167,33 @@
   [:pre#generated-value generated-value])
 
 
+;; https://stackoverflow.com/a/48460773
 (defn component-explain
-  [{:keys [spec input output]}]
+  [{:keys [spec input output error? format]}]
   [:table {:style {:width "100%" :table-layout "fixed"}}
    [:tbody
     [:tr
-     [:th {:style {:font-weight "normal"}} [:h3 "input data"]]
-     [:th {:style {:font-weight "normal"}} [:h3 "conformed data"]]]
-    [:tr] [:tr] [:tr] [:tr]
+     [:th {:style {:font-weight "normal"}} [:h3.green (str "input data"
+                                                           (if format
+                                                             (str " (" (name format) ")")
+                                                             ""))]]
+     [:th {:style {:font-weight "normal"}} (if error?
+                                             [:h3.red   "error"]
+                                             [:h3.green "conformed data (edn)"])]]
     [:tr
      [:td {:style {:vertical-align "top"}}
       [:textarea
-       {:on-change  #(enqueue! :explain [spec (util/tval->str %)])
-        :value      input
-        :style      {:width "95%" :height 530 :padding 10}
-        :spellCheck "false"}]]
-     [:td {:style {:vertical-align "top"}}
+       {:on-change  #(enqueue! :set-explain-input (util/tval->str %))
+        :on-key-up  #(with-typing-timeout (fn [] (enqueue! :explain [spec input])))
+        :style      {:width "95%" :height "100%" :padding 10}
+        :spellCheck "false"
+        :auto-focus true
+        :value      input}]]
+     [:td {:style {:vertical-align "top"
+                   :border (if error? "1px solid red" "1px solid darkgray")
+                   :padding 10}}
       [:pre
-       (if (or (string? output) (nil? (seq output)))
+       (if (or error? (empty? (str output)))
          output
          (with-out-str (cljs.pprint/pprint output)))]]]]])
 
@@ -238,8 +247,7 @@
            (component-explain explain)])]
        [:div.menu
         [:button "exercise"]
-        [:button "test"]
-        [:button "explain"]])]))
+        [:button "test"]])]))
 
 
 (defn home-page
@@ -248,12 +256,3 @@
     [:div.wrapper
      (-> state util/left-panel-data  left-panel)
      (-> state util/right-panel-data right-panel)]))
-
-
-(comment
-  
-
-  (snapshot)
-
-
-  ,)

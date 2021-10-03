@@ -2,9 +2,24 @@
   (:require
    [clojure.string :as str]
    [clojure.walk :as walk]
+   [cljs.reader :as reader]
    [cljs.pprint :as pprint]
    [pretty-spec.core :as ppspec]
    [json-html.core :refer [edn->hiccup]]))
+
+
+(defn edn?
+  [s]
+  (boolean
+   (try (reader/read-string s)
+        (catch js/Error _))))
+
+
+(defn json?
+  [s]
+  (boolean
+   (try (.parse js/JSON s)
+        (catch js/Error _))))
 
 
 (defn get-element-by-id
@@ -128,6 +143,12 @@
       (assoc :selected-generator gener)))
 
 
+(defn set-explain-input
+  [state input]
+  (-> state
+      (assoc-in [:explain :input] (str/triml input))))
+
+
 (defn toggle-hide-left
   [state]
   (-> state
@@ -178,10 +199,13 @@
 
 
 (defn explain
-  [state input output]
-  (-> state
-      (assoc-in [:explain :input ] input)
-      (assoc-in [:explain :output] output)))
+  [state {:keys [output error? format]}]
+  (let [state (-> state
+                  (assoc-in [:explain :output] output)
+                  (assoc-in [:explain :error?] error?))]
+    (if format
+      (assoc-in state [:explain :format] format)
+      (update state :explain dissoc :format))))
 
 
 ;; ========== STATE DATA -> UI DATA
@@ -216,9 +240,14 @@
 
 (defn component-explain-data
   [state]
-  {:spec   (-> state :selected-spec :spath last)
-   :input  (-> state :explain :input)
-   :output (-> state :explain :output)})
+  (let [explain (-> state :explain)
+        error?  (-> explain :error?)
+        format  (-> explain :format)]
+    (cond-> {:spec   (-> state :selected-spec :spath last)
+             :input  (-> explain :input)
+             :output (-> explain :output)}
+      error? (assoc :error? true)
+      format (assoc :format format))))
 
 
 (defn left-panel-data

@@ -24,6 +24,9 @@ npx shadow-cljs release app
   - apropos
   - inference
   - next step
+- improve explain (bug with dates, style, undo)
+- flash
+- generative testing
 
 - navigation gen
   :selected-spec -> sgen {spec {:name ... :value ...}}
@@ -32,6 +35,6 @@ npx shadow-cljs release app
   logic for nav on BE
 
 - better fspec - URI
-  - exercise
-  - generative testing
+- exercise
+
 

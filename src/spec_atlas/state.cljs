@@ -15,6 +15,17 @@
            :collapsed          #{}}))
 
 
+(defonce ^:private -typing-timeout*
+  (r/atom nil))
+
+
+(defn with-typing-timeout
+  [callback]
+  (js/clearTimeout @-typing-timeout*)
+  (reset! -typing-timeout*
+          (js/setTimeout callback 500)))
+
+
 (defn snapshot
   ([]      @-state*)
   ([& kws] (get-in @-state* kws)))
@@ -47,19 +58,21 @@
    (http method url nil callback))
   ([method url params callback]
    (let [url (str (snapshot :context-path) url)
-         req (cond-> {:method method, :url url}
-               params (assoc :query-params params))]
+         req (cond-> {:method method, :url url} ;; TODO FIXME
+               (and (= method :get ) params) (assoc :query-params params)
+               (and (= method :post) params) (assoc :form-params  params))]
      (async/take! (http/request req) callback))))
 
 
-(defmethod exec! :set-context-path [_ cpath ] (swap! -state* util/set-context-path cpath))
-(defmethod exec! :set-view         [_ view  ] (swap! -state* util/set-view view))
-(defmethod exec! :set-data-format  [_ fmt   ] (swap! -state* util/set-data-format fmt))
-(defmethod exec! :set-spec-format  [_ fmt   ] (swap! -state* util/set-spec-format fmt))
-(defmethod exec! :set-spec-action  [_ action] (swap! -state* util/set-spec-action action))
-(defmethod exec! :set-generator    [_ gener ] (swap! -state* util/set-generator gener))
-(defmethod exec! :toggle-hide-left [_ _     ] (swap! -state* util/toggle-hide-left))
-(defmethod exec! :toggle-collapse  [_ ns    ] (swap! -state* util/toggle-collapse ns))
+(defmethod exec! :set-context-path  [_ cpath ] (swap! -state* util/set-context-path cpath))
+(defmethod exec! :set-view          [_ view  ] (swap! -state* util/set-view view))
+(defmethod exec! :set-data-format   [_ fmt   ] (swap! -state* util/set-data-format fmt))
+(defmethod exec! :set-spec-format   [_ fmt   ] (swap! -state* util/set-spec-format fmt))
+(defmethod exec! :set-spec-action   [_ action] (swap! -state* util/set-spec-action action))
+(defmethod exec! :set-generator     [_ gener ] (swap! -state* util/set-generator gener))
+(defmethod exec! :set-explain-input [_ input ] (swap! -state* util/set-explain-input input))
+(defmethod exec! :toggle-hide-left  [_ _     ] (swap! -state* util/toggle-hide-left))
+(defmethod exec! :toggle-collapse   [_ ns    ] (swap! -state* util/toggle-collapse ns))
 
 
 (defmethod exec! :refresh-specs
@@ -91,17 +104,14 @@
 
 (defmethod exec! :explain
   [_ [spec input]]
-  (if (seq input)
-    (let [input' (or (try (cljs.reader/read-string input)
-                          input
-                          (catch js/Error _))
-                     (try (pr-str
-                           (js->clj (.parse js/JSON input)
-                                    :keywordize-keys true))
-                          (catch js/Error _)))]
-      (if input'
-        (http :get "/spec/explain"
-              {:spec spec :input input'}
-              #(swap! -state* util/explain input (:body %)))
-        (swap! -state* util/explain input "Invalid JSON / EDN.")))
-    (swap! -state* util/explain input "")))
+  (let [format (cond
+                 (empty? input)     :empty
+                 (util/json? input) :json
+                 (util/edn?  input) :edn
+                 :else              :unknown)]
+    (case format
+      :empty   (swap! -state* util/explain {:output ""})
+      :unknown (swap! -state* util/explain {:output "Invalid JSON / EDN." :error? true})
+      (http :post "/spec/explain"
+            {:spec spec :input input :format format}
+            #(swap! -state* util/explain (assoc (:body %) :format format))))))
