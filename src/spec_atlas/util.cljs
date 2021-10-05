@@ -278,15 +278,13 @@
           fspec?               (symbol? selected-spec)
           path                 (-> path butlast)
           selected-spec-format (-> state :spec-format)
-          selected-spec-action (-> state :spec-action)
-          selected-spec-action (when (or (not fspec?)
-                                         (= :generate selected-spec-action))
-                                 selected-spec-action)]
+          spec-actions         (if fspec?
+                                 [:generate]
+                                 [:usages :generate :explain])
+          selected-spec-action (-> state :spec-action ((set spec-actions)))]
       (merge
        (cond-> {:spec-format  {:formats [:abbr :desc :form]}
-                :spec-action  {:actions (if fspec?
-                                          [:generate]
-                                          [:usages :generate :explain])}}
+                :spec-action  {:actions spec-actions}}
          path                 (assoc :path path)
          selected-spec        (assoc :selected-spec selected-spec)
          selected-spec-action (assoc-in [:spec-action :selected] selected-spec-action)
