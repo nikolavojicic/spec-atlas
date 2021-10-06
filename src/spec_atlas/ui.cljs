@@ -50,14 +50,14 @@
        (str (if collapsed? "+ " "- ") ns)]
       (when (not collapsed?)
         [:ul
-         (for [spec specs] ^{:key spec}
+         (for [{:keys [name method spec]} specs] ^{:key spec}
            [:li
             [:a {:href     "#"
                  :on-click #(enqueue! :select-spec spec)
                  :class    (if (= spec selected-spec)
                              [:menuitem :selected]
                              [:menuitem])}
-             (keyword spec)]])])
+             (util/spec-rel-name name method)]])])
       (when collapsed? [:br])
       [:br]])])
 
@@ -76,13 +76,16 @@
 
 
 (defn component-spec-name
-  [spec]
+  [{:keys [ns name method]}]
+  (println ns name method)
   [:h3
-   (let [[src name] (str/split (str spec) "/")]
-     [:div
-      [:span.green src]
-      [:span       "/"]
-      [:span.blue  name]])])
+   [:div
+    (if method
+      [:span.green ns]
+      [:span
+       [:span.green (str ":" ns)]
+       [:span "/"]])
+    [:span.blue (util/spec-rel-name name method)]]])
 
 
 (defn component-spec-format
@@ -120,11 +123,11 @@
        [:li
         [:span.green ns]
         [:ul
-         (for [spec specs] ^{:key spec}
+         (for [{:keys [name method spec]} specs] ^{:key spec}
            [:li
             [:a.menuitem {:href     "#"
                           :on-click #(enqueue! :select-spec spec)}
-             (keyword spec)]])]
+             (util/spec-rel-name name method)]])]
         [:br]])]
     [:label.red "There are no usages."]))
 
@@ -159,50 +162,47 @@
           [:option (name data-format)])]]]]]
    (when generated-value [:span.spacer])
    (when generated-value
-     (let [value generated-value
-           args  (:args value)
-           ret   (:ret  value)]
-       (if (symbol? spec)
-         [:table {:style {:width "100%"}}
-          [:tbody
-           [:tr
-            [:th {:style {:font-weight "normal"}}
-             [:h3.green "args data"]
-             [:button.action
-              {:on-click #(-> :generated-args
-                              util/get-element-value-by-id
-                              util/copy-to-clipboard)}
-              "copy"]
-             [:button.action
-              {:on-click #(enqueue! :toggle-conformed :args)}
-              (if (:args show-conformed) "unform" "conform")]]
-            [:th {:style {:font-weight "normal"}}
-             [:h3.green "ret data"]
-             [:button.action
-              {:on-click #(-> :generated-ret
-                              util/get-element-value-by-id
-                              util/copy-to-clipboard)}
-              "copy"]
-             [:button.action
-              {:on-click #(enqueue! :toggle-conformed :ret)}
-              (if (:ret show-conformed) "unform" "conform")]]]
-           [:tr
-            [:td {:style {:vertical-align "top" }}
-             [:pre#generated-args (:args generated-value)]]
-            [:td {:style {:vertical-align "top" }}
-             [:pre#generated-ret  (:ret  generated-value)]]]]]
-         [:div
-          [:div
+     (if (symbol? spec)
+       [:table {:style {:width "100%"}}
+        [:tbody
+         [:tr
+          [:th {:style {:font-weight "normal"}}
+           [:h3.green "args data"]
            [:button.action
-            {:on-click #(-> :generated-value
+            {:on-click #(-> :generated-args
                             util/get-element-value-by-id
                             util/copy-to-clipboard)}
             "copy"]
            [:button.action
-            {:on-click #(enqueue! :toggle-conformed :value)}
-            (if (:value show-conformed) "unform" "conform")]]
-          [:span.spacer]
-          [:pre#generated-value generated-value]])))])
+            {:on-click #(enqueue! :toggle-conformed :args)}
+            (if (:args show-conformed) "unform" "conform")]]
+          [:th {:style {:font-weight "normal"}}
+           [:h3.green "ret data"]
+           [:button.action
+            {:on-click #(-> :generated-ret
+                            util/get-element-value-by-id
+                            util/copy-to-clipboard)}
+            "copy"]
+           [:button.action
+            {:on-click #(enqueue! :toggle-conformed :ret)}
+            (if (:ret show-conformed) "unform" "conform")]]]
+         [:tr
+          [:td {:style {:vertical-align "top" }}
+           [:pre#generated-args (:args generated-value)]]
+          [:td {:style {:vertical-align "top" }}
+           [:pre#generated-ret  (:ret  generated-value)]]]]]
+       [:div
+        [:div
+         [:button.action
+          {:on-click #(-> :generated-value
+                          util/get-element-value-by-id
+                          util/copy-to-clipboard)}
+          "copy"]
+         [:button.action
+          {:on-click #(enqueue! :toggle-conformed :value)}
+          (if (:value show-conformed) "unform" "conform")]]
+        [:span.spacer]
+        [:pre#generated-value generated-value]]))])
 
 
 (defn component-explain
@@ -252,7 +252,7 @@
 
 
 (defn right-panel
-  [{:keys [path selected-spec spec-format spec-definition spec-action]
+  [{:keys [path selected-spec selected-spec-details spec-format spec-definition spec-action]
     :as   right-panel-data}]
   (when selected-spec
     [:div.col-right
@@ -260,7 +260,8 @@
        [:div
         (component-spec-path path)
         [:span.spacer]])
-     (component-spec-name selected-spec)
+     (println selected-spec-details)
+     (component-spec-name selected-spec-details)
      [:span.spacer]
      [:div.menu
       (component-spec-format spec-format)

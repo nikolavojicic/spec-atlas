@@ -6,6 +6,14 @@
    [json-html.core :refer [edn->hiccup]]))
 
 
+(defn spec-rel-name
+  [spec-name method]
+  (str spec-name
+       (if method
+         (str " [" (str/upper-case (name method)) "]")
+         "")))
+
+
 (defn edn?
   [s]
   (boolean
@@ -65,8 +73,8 @@
 
 (defn hierarchy
   [specs]
-  (-> (group-by namespace specs)
-      (update-vals sort)
+  (-> (group-by :ns specs)
+      (update-vals (fn [specs] (sort-by :name specs)))
       sort))
 
 
@@ -165,13 +173,14 @@
 
 (defn refresh-specs
   [state {:keys [data fspec]}]
-  (-> state
-      (assoc :specs-data  data)
-      (assoc :specs-fspec fspec)))
+  (cond-> state
+    (not-empty data)  (assoc :specs-data  data)
+    (not-empty fspec) (assoc :specs-fspec fspec)))
 
 
 (defn select-spec
   [state selected-spec]
+  (println selected-spec)
   (-> state
       (assoc :selected-spec selected-spec)
       (dissoc :explain)))
@@ -188,7 +197,7 @@
 
 (defn navigate
   [state selected-spec]
-  (let [spec         (-> selected-spec :spath last)
+  (let [spec         (-> selected-spec :leaf :spec)
         spath        (-> state :selected-spec :spath vec)
         [npath tail] (split-with (complement #{spec}) spath)
         npath        (conj (vec npath) spec)]
@@ -212,13 +221,13 @@
 
 (defn component-usages-data
   [state]
-  (let [usages (-> state :selected-spec :usages sort)]
+  (let [usages (-> state :selected-spec :usages)]
     (hierarchy usages)))
 
 
 (defn component-generate-data
   [state]
-  (let [spec                 (-> state :selected-spec :spath last)
+  (let [spec                 (-> state :selected-spec :leaf :spec)
         generators           (-> state :selected-spec :generators sort (conj :default))
         generator            (-> state :selected-spec :sgen)
         show-conformed       (-> state :show-conformed)
@@ -266,7 +275,7 @@
   (let [explain (-> state :explain)
         error?  (-> explain :error?)
         format  (-> explain :format)]
-    (cond-> {:spec   (-> state :selected-spec :spath last)
+    (cond-> {:spec   (-> state :selected-spec :leaf :spec)
              :input  (-> explain :input)
              :output (-> explain :output)}
       error? (assoc :error? true)
@@ -278,7 +287,7 @@
   (if (:hide-left? state)
     {:hide-left? true}
     (let [selected-view (-> state :selected-view)
-          selected-spec (-> state :selected-spec :spath last)
+          selected-spec (-> state :selected-spec :leaf :spec)
           collapsed     (-> state :collapsed)]
       (cond-> {:hide-left? false
                :views      [:data :fspec]
@@ -295,27 +304,29 @@
 (defn right-panel-data
   [state]
   (when-some [sdef (:selected-spec state)]
-    (let [path                 (-> sdef :spath)
-          selected-spec        (-> path last)
-          fspec?               (symbol? selected-spec)
-          path                 (-> path butlast)
-          selected-spec-format (-> state :spec-format)
-          spec-actions         (if fspec?
-                                 [:generate]
-                                 [:usages :generate :explain])
-          selected-spec-action (-> state :spec-action ((set spec-actions)))]
+    (let [path                  (-> sdef :spath)
+          selected-spec-details (-> sdef :leaf)
+          selected-spec         (-> selected-spec-details :spec)
+          fspec?                (symbol? selected-spec)
+          path                  (-> path butlast)
+          selected-spec-format  (-> state :spec-format)
+          spec-actions          (if fspec?
+                                  [:generate]
+                                  [:usages :generate :explain])
+          selected-spec-action  (-> state :spec-action ((set spec-actions)))]
       (merge
        (cond-> {:spec-format  {:formats [:abbr :desc :form]}
                 :spec-action  {:actions spec-actions}}
          path                 (assoc :path path)
-         selected-spec        (assoc :selected-spec selected-spec)
-         selected-spec-action (assoc-in [:spec-action :selected] selected-spec-action)
-         selected-spec-format (-> (assoc-in [:spec-format :selected] selected-spec-format)
-                                  (assoc :spec-definition
-                                         (case selected-spec-format
-                                           :abbr (-> sdef :sdesc (linkify :abbr))
-                                           :desc (-> sdef :sdesc linkify)
-                                           :form (-> sdef :sform linkify)))))
+         selected-spec-details (assoc :selected-spec-details selected-spec-details)
+         selected-spec         (assoc :selected-spec selected-spec)
+         selected-spec-action  (assoc-in [:spec-action :selected] selected-spec-action)
+         selected-spec-format  (-> (assoc-in [:spec-format :selected] selected-spec-format)
+                                   (assoc :spec-definition
+                                          (case selected-spec-format
+                                            :abbr (-> sdef :sdesc (linkify :abbr))
+                                            :desc (-> sdef :sdesc linkify)
+                                            :form (-> sdef :sform linkify)))))
        (case selected-spec-action
          nil       nil
          :usages   {:usages   (component-usages-data   state)}

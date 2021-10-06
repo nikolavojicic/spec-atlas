@@ -16,17 +16,15 @@ npx shadow-cljs release app
 ### TODO
 
 - Alt+Click to (un)fold all
+- ctrl+click on link -> open in new tab
 - two windows on the right with L-R / U-D position
 - back~forward
-- drill into predicate + support lambdas in s/def
-- rename brainteaser-assistant -> brainteaser.assistant
-- search
-  - apropos
-  - inference
-  - next step
-- improve explain (bug with dates + or, undo)
 - flash
-- generative testing
+
+- drill into predicate
+- rename brainteaser-assistant -> brainteaser.assistant
+- explain undo
+- explain bug with dates + or
 
 - navigation gen
   :selected-spec -> sgen {spec {:name ... :value ...}}
@@ -35,7 +33,7 @@ npx shadow-cljs release app
   logic for nav on BE
   navigation explain
 
-- better fspec - URI
-- exercise
-
-
+- search
+  - apropos search
+  - spec inference from data
+  - next step
