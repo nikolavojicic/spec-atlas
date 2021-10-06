@@ -129,42 +129,80 @@
     [:label.red "There are no usages."]))
 
 
-(defn component-generate-menu
+(defn component-generate
   [{:keys [spec
            generators
            selected-generator
            data-formats
-           selected-data-format]}]
-  [:table
-   [:tbody
-    [:tr
-     [:td [:label "generator"]]
-     [:td
-      [:select {:on-change #(enqueue! :set-generator (util/tval->kw %))
-                :value     selected-generator}
-       (for [generator generators] ^{:key generator}
-         [:option generator])]]
-     [:td
-      [:button.action {:on-click #(enqueue! :generate [spec selected-generator])}
-       "exec"]]]
-    [:tr
-     [:td [:label "previewer"]]
-     [:td
-      [:select {:on-change #(enqueue! :set-data-format (util/tval->kw %))
-                :value     selected-data-format}
-       (for [data-format data-formats] ^{:key data-format}
-         [:option (name data-format)])]]
-     [:td
-      [:button.action
-       {:on-click #(-> :generated-value
-                       util/get-element-by-id
-                       util/copy-to-clipboard)}
-       "copy"]]]]])
-
-
-(defn component-generate-value
-  [{:keys [generated-value]}]
-  [:pre#generated-value generated-value])
+           selected-data-format
+           show-conformed
+           generated-value]}]
+  [:div
+   [:table
+    [:tbody
+     [:tr
+      [:td [:label "generator"]]
+      [:td
+       [:select {:on-change #(enqueue! :set-generator (util/tval->kw %))
+                 :value     selected-generator}
+        (for [generator generators] ^{:key generator}
+          [:option generator])]]
+      [:td
+       [:button.action {:on-click #(enqueue! :generate [spec selected-generator])}
+        "exec"]]]
+     [:tr
+      [:td [:label "previewer"]]
+      [:td
+       [:select {:on-change #(enqueue! :set-data-format (util/tval->kw %))
+                 :value     selected-data-format}
+        (for [data-format data-formats] ^{:key data-format}
+          [:option (name data-format)])]]]]]
+   (when generated-value [:span.spacer])
+   (when generated-value
+     (let [value generated-value
+           args  (:args value)
+           ret   (:ret  value)]
+       (if (symbol? spec)
+         [:table {:style {:width "100%"}}
+          [:tbody
+           [:tr
+            [:th {:style {:font-weight "normal"}}
+             [:h3.green "args data"]
+             [:button.action
+              {:on-click #(-> :generated-args
+                              util/get-element-value-by-id
+                              util/copy-to-clipboard)}
+              "copy"]
+             [:button.action
+              {:on-click #(enqueue! :toggle-conformed :args)}
+              (if (:args show-conformed) "unform" "conform")]]
+            [:th {:style {:font-weight "normal"}}
+             [:h3.green "ret data"]
+             [:button.action
+              {:on-click #(-> :generated-ret
+                              util/get-element-value-by-id
+                              util/copy-to-clipboard)}
+              "copy"]
+             [:button.action
+              {:on-click #(enqueue! :toggle-conformed :ret)}
+              (if (:ret show-conformed) "unform" "conform")]]]
+           [:tr
+            [:td {:style {:vertical-align "top" }}
+             [:pre#generated-args (:args generated-value)]]
+            [:td {:style {:vertical-align "top" }}
+             [:pre#generated-ret  (:ret  generated-value)]]]]]
+         [:div
+          [:div
+           [:button.action
+            {:on-click #(-> :generated-value
+                            util/get-element-value-by-id
+                            util/copy-to-clipboard)}
+            "copy"]
+           [:button.action
+            {:on-click #(enqueue! :toggle-conformed :value)}
+            (if (:value show-conformed) "unform" "conform")]]
+          [:span.spacer]
+          [:pre#generated-value generated-value]])))])
 
 
 (defn component-explain
@@ -177,29 +215,27 @@
                       (if format
                         (str " (" (name format) ")")
                         ""))]]
-     [:th {:style {:font-weight "normal"}}
-      (if error?
-        [:h3.red   "error"]
-        [:h3.green "conformed data (edn)"])]]
+     (when (seq input)
+       [:th {:style {:font-weight "normal"}}
+        (if error?
+          [:h3.red   "error"]
+          [:h3.green "conformed data (edn)"])])]
     [:tr
-     [:td {:style {:vertical-align "top" :border "1px solid darkgray"}}
+     [:td {:style {:vertical-align "top"}}
       [:textarea
        {:on-change  #(enqueue! :set-explain-input (util/tval->str %))
         :on-key-up  #(with-typing-timeout (fn [] (enqueue! :explain [spec input])))
-        :rows       (max 20
-                         (count (str/split-lines input))
-                         (count (str/split-lines output)))
-        :style      {:padding 10}
+        :rows       (max 20 (inc (count (str/split-lines input))))
+        :style      {:padding 10 :background-color "rgb(255, 255, 240)"}
         :spellCheck "false"
         :auto-focus true
         :value      input}]]
-     [:td {:style {:vertical-align "top"
-                   :border (if error? "1px solid red" "1px solid darkgray")
-                   :padding 10}}
-      [:pre
-       (if (or error? (empty? (str output)))
-         output
-         (with-out-str (cljs.pprint/pprint output)))]]]]])
+     (when (seq input)
+       [:td {:style {:vertical-align "top" :padding 10}}
+        [:pre
+         (if (or error? (empty? (str output)))
+           output
+           (with-out-str (cljs.pprint/pprint output)))]])]]])
 
 
 ;; ====================
@@ -241,10 +277,7 @@
         [:div
          (component-usages usages)])
       (when-some [generate (:generate right-panel-data)]
-        [:div
-         (component-generate-menu generate)
-         [:span.spacer]
-         (component-generate-value generate)])
+        (component-generate generate))
       (when-some [explain (:explain right-panel-data)]
         [:div
          (component-explain explain)])]]))

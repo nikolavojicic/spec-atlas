@@ -73,7 +73,7 @@
 (defmethod exec! :set-explain-input [_ input ] (swap! -state* util/set-explain-input input))
 (defmethod exec! :toggle-hide-left  [_ _     ] (swap! -state* util/toggle-hide-left))
 (defmethod exec! :toggle-collapse   [_ ns    ] (swap! -state* util/toggle-collapse ns))
-
+(defmethod exec! :toggle-conformed  [_ kw    ] (swap! -state* util/toggle-conformed kw))
 
 (defmethod exec! :refresh-specs
   [_ _]
@@ -111,7 +111,7 @@
                  :else              :unknown)]
     (case format
       :empty   (swap! -state* util/explain {:output ""})
-      :unknown (swap! -state* util/explain {:output "Invalid JSON / EDN." :error? true})
+      :unknown (swap! -state* util/explain {:output "Invalid EDN / JSON." :error? true})
       (http :post "/spec/explain"
             {:spec spec :input input :format format}
             #(swap! -state* util/explain (assoc (:body %) :format format))))))

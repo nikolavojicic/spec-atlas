@@ -1,10 +1,8 @@
 (ns spec-atlas.util
   (:require
    [clojure.string :as str]
-   [clojure.walk :as walk]
    [cljs.reader :as reader]
    [cljs.pprint :as pprint]
-   [pretty-spec.core :as ppspec]
    [json-html.core :refer [edn->hiccup]]))
 
 
@@ -22,7 +20,7 @@
         (catch js/Error _))))
 
 
-(defn get-element-by-id
+(defn get-element-value-by-id
   [id]
   (-> js/document
       (.getElementById (name id))
@@ -50,16 +48,6 @@
 (defn tval->kw
   [x]
   (-> x .-target .-value keyword))
-
-
-(defn fix-or-ns
-  [s]
-  (walk/postwalk
-   (fn [x]
-     (if (= x 'clojure.core/or)
-       'or
-       x))
-   s))
 
 
 (defn update-vals
@@ -119,7 +107,6 @@
 (defn set-spec-format
   [state format]
   (let [old-format (:spec-format state)]
-    (println old-format format)
     (if (= format old-format)
       (-> state
           (dissoc :spec-format))
@@ -165,6 +152,17 @@
                   (conj collapsed ns))))))
 
 
+(defn toggle-conformed
+  [state kw]
+  (let [path      [:show-conformed]
+        conformed (get-in state path #{})]
+    (if (kw conformed)
+      (-> state
+          (update-in path disj kw))
+      (-> state
+          (assoc-in path (conj conformed kw))))))
+
+
 (defn refresh-specs
   [state {:keys [data fspec]}]
   (-> state
@@ -180,7 +178,7 @@
 
 
 (defn generate
-  [state {:keys [generated-value]}]
+  [state generated-value]
   (cond-> state
     generated-value
     (assoc-in [:selected-spec :sgen]
@@ -223,6 +221,7 @@
   (let [spec                 (-> state :selected-spec :spath last)
         generators           (-> state :selected-spec :generators sort (conj :default))
         generator            (-> state :selected-spec :sgen)
+        show-conformed       (-> state :show-conformed)
         generated-value      (-> generator :value)
         selected-data-format (-> state :data-format)
         selected-generator   (-> state :selected-generator)]
@@ -231,12 +230,35 @@
       selected-generator   (assoc :selected-generator   selected-generator)
       generators           (assoc :generators           generators)
       spec                 (assoc :spec                 spec)
+      show-conformed         (assoc :show-conformed show-conformed)
       generated-value      (assoc :generated-value
-                                  (case selected-data-format
-                                    nil   ""
-                                    :edn  (with-out-str (pprint/pprint generated-value))
-                                    :json (edn->json generated-value)
-                                    :html (edn->hiccup generated-value))))))
+                                  (if (symbol? spec)
+                                    (let [args (get-in generated-value
+                                                       [(if (:args show-conformed)
+                                                          :conformed :unformed)
+                                                        :args])
+                                          ret  (get-in generated-value
+                                                       [(if (:ret show-conformed)
+                                                          :conformed :unformed)
+                                                        :ret])]
+                                      {:args (case selected-data-format
+                                               nil   ""
+                                               :edn  (with-out-str (pprint/pprint args))
+                                               :json (edn->json   args)
+                                               :html (edn->hiccup args))
+                                       :ret  (case selected-data-format
+                                               nil   ""
+                                               :edn  (with-out-str (pprint/pprint ret))
+                                               :json (edn->json   ret)
+                                               :html (edn->hiccup ret))})
+                                    (let [generated-value (if (:value show-conformed)
+                                                            (:conformed generated-value)
+                                                            (:unformed  generated-value))]
+                                      (case selected-data-format
+                                        nil   ""
+                                        :edn  (with-out-str (pprint/pprint generated-value))
+                                        :json (edn->json generated-value)
+                                        :html (edn->hiccup generated-value))))))))
 
 
 (defn component-explain-data
@@ -291,12 +313,9 @@
          selected-spec-format (-> (assoc-in [:spec-format :selected] selected-spec-format)
                                   (assoc :spec-definition
                                          (case selected-spec-format
-                                           :abbr (-> sdef :sdesc ppspec/pprint
-                                                     with-out-str (linkify :abbr))
-                                           :desc (-> sdef :sdesc ppspec/pprint
-                                                     with-out-str linkify)
-                                           :form (-> sdef :sform fix-or-ns ppspec/pprint
-                                                     with-out-str linkify)))))
+                                           :abbr (-> sdef :sdesc (linkify :abbr))
+                                           :desc (-> sdef :sdesc linkify)
+                                           :form (-> sdef :sform linkify)))))
        (case selected-spec-action
          nil       nil
          :usages   {:usages   (component-usages-data   state)}
