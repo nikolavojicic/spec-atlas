@@ -77,7 +77,6 @@
 
 (defn component-spec-name
   [{:keys [ns name method]}]
-  (println ns name method)
   [:h3
    [:div
     (if method
@@ -260,7 +259,6 @@
        [:div
         (component-spec-path path)
         [:span.spacer]])
-     (println selected-spec-details)
      (component-spec-name selected-spec-details)
      [:span.spacer]
      [:div.menu

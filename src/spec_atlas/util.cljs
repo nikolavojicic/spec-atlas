@@ -180,7 +180,6 @@
 
 (defn select-spec
   [state selected-spec]
-  (println selected-spec)
   (-> state
       (assoc :selected-spec selected-spec)
       (dissoc :explain)))
