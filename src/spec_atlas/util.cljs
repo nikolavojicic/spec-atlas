@@ -88,7 +88,7 @@
   (->> (if abbr?
          "<a class='menuitem' href=\"#\" onclick=\"spec_atlas.ui._pre_navigate('$1')\" title=\"$1\">:../$2</a>"
          "<a class='menuitem' href=\"#\" onclick=\"spec_atlas.ui._pre_navigate('$1')\">$1</a>")
-       (str/replace s #"(:\S+/([^\)\]\r\n]+))")))
+       (str/replace s #"(:\S+/([^\)\]\r\n ]+))")))
 
 
 ;; ========== STATE DATA -> STATE DATA
