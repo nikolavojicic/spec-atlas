@@ -25,6 +25,7 @@ npx shadow-cljs release app
 - rename brainteaser-assistant -> brainteaser.assistant
 - explain undo
 - explain bug with dates + or
+- explain date better (try explain json then edn)
 
 - navigation gen
   :selected-spec -> sgen {spec {:name ... :value ...}}
