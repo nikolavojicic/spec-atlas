@@ -58,7 +58,7 @@
   (-> x .-target .-value keyword))
 
 
-(defn update-vals
+(defn -update-vals
   "TODO remove in future ClojureScript version."
   [m f]
   (with-meta
