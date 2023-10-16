@@ -74,7 +74,7 @@
 (defn hierarchy
   [specs]
   (-> (group-by :ns specs)
-      (update-vals (fn [specs] (sort-by :name specs)))
+      (-update-vals (fn [specs] (sort-by :name specs)))
       sort))
 
 
