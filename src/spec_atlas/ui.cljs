@@ -65,7 +65,7 @@
 (defn component-spec-path
   [path]
   (when path
-    [:div 
+    [:div
      (for [[i spec] (map-indexed vector path)] ^{:key i}
        [:div
         [:a.menuitem
