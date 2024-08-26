@@ -12,7 +12,7 @@
                    (str/replace "\"" "")))))
 
 
-(state/enqueue! :set-context-path "http://172.28.43.198:3000")
+(state/enqueue! :set-context-path "http://localhost:3008")
 (state/enqueue! :refresh-specs)
 
 
